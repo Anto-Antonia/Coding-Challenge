@@ -18,21 +18,25 @@ public class CoffeeShop {
         this.distance = distance;
     }
 
+    // main method, expecting 3 command-line arguments (user x coords, user y coords, URL of the coffee shop CSV file)
     public static void main(String[] args) {
         if(args.length != 3){
             System.out.println("Usage: <user_x_coordinate> <user_y_coordinate> <shop_data_url>");
             return;
         }
         try{
+            // parse user coordinates
             double x = Double.parseDouble(args[0]);
             double y = Double.parseDouble(args[1]);
             String shopUrl = args[2];
 
+            //fetch coffee shops and calculates the distance
             List<CoffeeShop> coffeeShopList = fetchCoffeeShops(shopUrl, x, y);
 
+            // sort shops by distance
             coffeeShopList.sort(Comparator.comparingDouble(shop -> shop.distance));
 
-            int count = Math.min(3, coffeeShopList.size());
+            int count = Math.min(3, coffeeShopList.size()); // print top 3 closest coffee shops
             for(int i = 0; i < count; i++){
                 CoffeeShop shop = coffeeShopList.get(i);
                 System.out.printf("%s,%.4f\n",shop.name, shop.distance);
@@ -44,22 +48,26 @@ public class CoffeeShop {
     }
 
     public static List<CoffeeShop> fetchCoffeeShops(String url, double userX, double userY) throws Exception{
-        List<CoffeeShop> shops = new ArrayList<>();
+        List<CoffeeShop> shops = new ArrayList<>(); // list for storing coffee shops
         URL url1 = new URL(url);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url1.openStream()));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(url1.openStream())); // using buffer reader to read from urls
         String line;
 
         while((line = reader.readLine()) != null){
             String[] parts = line.split(",");
 
+            // skip invalid lines that don't match the expected format
             if(parts.length != 3){
                 System.out.println("Invalid data format: "+ line);
                 continue;
             }
             try{
+                // Parse coffee shop data
                 String name = parts[0].trim();
                 double shopX = Double.parseDouble(parts[1]);
                 double shopY = Double.parseDouble(parts[2]);
+
+                //calculate distance form user
                 double distance = calculateDistance(userX,userY, shopX, shopY);
                 shops.add(new CoffeeShop(name, shopX, shopY,distance));
             } catch(NumberFormatException e){
@@ -70,8 +78,8 @@ public class CoffeeShop {
         return shops;
     }
 
-    private static double calculateDistance(double userX, double userY, double shopX, double shopY) {
-        double distance =  Math.sqrt(Math.pow(userX - shopX, 2) + Math.pow(shopY - userY, 2));
+    private static double calculateDistance(double userX, double userY, double shopX, double shopY) { // using Euclidean formula to calculate the distance between 2 points (user and coffee shop)
+        double distance =  Math.sqrt(Math.pow(userX - shopX, 2) + Math.pow(shopY - userY, 2));        // distance formula: sqrt((x2 -x1)^2 + (y2 -y1)^2)
         return Math.round(distance * 10000.0) / 10000.0;  // rounding to 4 decimals
     }
 }
