@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class CoffeeShop {
     // main method, expecting 3 command-line arguments (user x coords, user y coords, URL of the coffee shop CSV file)
     public static void main(String[] args) {
         if(args.length != 3){
-            System.out.println("Usage: <user_x_coordinate> <user_y_coordinate> <shop_data_url>");
+            System.out.println("Error: Missing arguments. Usage: <user_x_coordinate> <user_y_coordinate> <shop_data_url>"); // more debugging friendly
             return;
         }
         try{
@@ -41,8 +42,17 @@ public class CoffeeShop {
                 CoffeeShop shop = coffeeShopList.get(i);
                 System.out.printf("%s,%.4f\n",shop.name, shop.distance);
             }
-        } catch(Exception e){
-            System.out.println("Error: " + e.getMessage());
+        } catch(NumberFormatException e){
+            System.out.println("Error: Invalid coordinate format. Please enter valid numbers");
+            e.printStackTrace();
+        } catch (ArrayIndexOutOfBoundsException e){
+            System.out.println("Error: Missing arguments. Please provide X and Y coordinates.");
+            e.printStackTrace();
+        } catch (IOException e){
+            System.out.println("Error: Failed to fetch coffee shops. Please check if the URL is correct and accessible");
+            e.printStackTrace();
+        } catch (Exception e){
+            System.out.println("An unexpected error has occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -58,20 +68,20 @@ public class CoffeeShop {
 
             // skip invalid lines that don't match the expected format
             if(parts.length != 3){
-                System.out.println("Invalid data format: "+ line);
+                System.out.println("Skipping invalid entry: " + line);
                 continue;
             }
             try{
                 // Parse coffee shop data
                 String name = parts[0].trim();
-                double shopX = Double.parseDouble(parts[1]);
-                double shopY = Double.parseDouble(parts[2]);
+                double shopX = Double.parseDouble(parts[1].trim()); // added .trim()
+                double shopY = Double.parseDouble(parts[2].trim());
 
                 //calculate distance form user
                 double distance = calculateDistance(userX,userY, shopX, shopY);
                 shops.add(new CoffeeShop(name, shopX, shopY,distance));
             } catch(NumberFormatException e){
-                System.out.println("Invalid coffee shop format found. " + line);
+                System.out.println("Skipping invalid entry due to bad number format: " + line);
             }
         }
         reader.close();
